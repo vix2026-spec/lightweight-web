@@ -36,7 +36,7 @@ pm2 save
 pm2 startup  # Copy and run the command it outputs
 ```
 
-### Updating
+### Updating （After deployment）
 
 ```bash
 cd /var/www/lightweight-web
@@ -78,7 +78,7 @@ pm2 save
 pm2 startup  # 複製它輸出的指令並執行
 ```
 
-### 後續更新
+### 後續更新（佈署後的更新方式）
 
 ```bash
 cd /var/www/lightweight-web
