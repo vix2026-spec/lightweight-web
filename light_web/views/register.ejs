@@ -1,15 +1,18 @@
 <%- include('head', { title: 'Register' }) -%>
 
 <h1>Register</h1>
-<%- message %>
+<% if (messageType) { %>
+  <p class="msg <%= messageType %>"><%= messageText %></p>
+<% } %>
 <form method="post" action="/auth/register">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <p>
     <label for="username">Username:</label>
-    <input type="text" name="username" id="username">
+    <input type="text" name="username" id="username" maxlength="50">
   </p>
   <p>
     <label for="password">Password:</label>
-    <input type="password" name="password" id="password">
+    <input type="password" name="password" id="password" minlength="6" maxlength="200">
   </p>
   <p>
     <input type="submit" value="Register">

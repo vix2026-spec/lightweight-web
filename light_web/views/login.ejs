@@ -1,22 +1,23 @@
-<%- include('head', { title: 'Authentication Example' }) -%>
+<%- include('head', { title: 'Login' }) -%>
 
 <h1>Login</h1>
-<%- message %>
-Try accessing <a href="/auth/restricted">/auth/restricted</a>, then authenticate with "tj" and "foobar".
+<% if (messageType) { %>
+  <p class="msg <%= messageType %>"><%= messageText %></p>
+<% } %>
 <form method="post" action="/auth/login">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <p>
     <label for="username">Username:</label>
-    <input type="text" name="username" id="username">
+    <input type="text" name="username" id="username" maxlength="50">
   </p>
   <p>
     <label for="password">Password:</label>
-    <input type="text" name="password" id="password">
+    <input type="password" name="password" id="password" maxlength="200">
   </p>
   <p>
     <input type="submit" value="Login">
   </p>
 </form>
-
 <p>No account yet? <a href="/auth/register">Register</a></p>
 
 <%- include('foot') -%>

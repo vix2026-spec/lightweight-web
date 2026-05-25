@@ -1,12 +1,30 @@
+'use strict';
+require('dotenv').config({ quiet: true });
 const express = require('express');
 const path = require('node:path');
+const session = require('express-session');
+const helmet = require('helmet');
+
 const app = express();
 const PORT = 3000;
 
+if (!process.env.SESSION_SECRET) {
+  console.warn('WARNING: SESSION_SECRET not set. Please create a .env file. See .env.example.');
+}
+
+app.use(helmet({ contentSecurityPolicy: false }));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
 app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  resave: false,
+  saveUninitialized: false,
+  secret: process.env.SESSION_SECRET || 'change-this-in-production',
+  cookie: {
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  }
+}));
 
 app.get('/', (req, res) => {
     res.send(`
