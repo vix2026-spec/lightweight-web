@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = 3000; // 💡 注意：沒 sudo 權限時，請改成 3000 埠
+const PORT = 3000; // Use port 3000 when running without sudo privileges
 
 app.get('/', (req, res) => {
     res.send(`
