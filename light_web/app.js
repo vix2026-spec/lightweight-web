@@ -1,6 +1,12 @@
 const express = require('express');
+const path = require('node:path');
 const app = express();
-const PORT = 3000; // Use port 3000 when running without sudo privileges
+const PORT = 3000;
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
     res.send(`
@@ -18,11 +24,14 @@ app.get('/', (req, res) => {
             <div class="card">
                 <h1>Congratulations! The web server is running on GCP e2-micro!</h1>
                 <p>This is a lightweight Node.js Express web page example.</p>
+                <p><a href="/auth/login">Try the Auth Example &rarr;</a></p>
             </div>
         </body>
         </html>
     `);
 });
+
+app.use('/auth', require('./auth'));
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}...`);
