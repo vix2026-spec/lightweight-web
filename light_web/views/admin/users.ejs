@@ -1,0 +1,69 @@
+<%- include('head', { title: 'User Management' }) -%>
+
+<h2>User Management</h2>
+
+<form method="get" action="/admin/users" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+  <input type="text" name="q" value="<%= search %>" placeholder="Search username..."
+    style="padding:7px 12px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+  <select name="status" style="padding:7px 12px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
+    <option value="">All Status</option>
+    <option value="pending"   <%= filterStatus==='pending'   ? 'selected' : '' %>>Pending</option>
+    <option value="approved"  <%= filterStatus==='approved'  ? 'selected' : '' %>>Approved</option>
+    <option value="suspended" <%= filterStatus==='suspended' ? 'selected' : '' %>>Suspended</option>
+  </select>
+  <button type="submit" style="padding:7px 16px;background:#2980b9;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px;">Filter</button>
+  <a href="/admin/users" style="padding:7px 16px;color:#666;font-size:14px;text-decoration:none;line-height:1.8;">Clear</a>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% users.forEach(function(user) { %>
+    <tr>
+      <td style="color:#999"><%= user.id %></td>
+      <td style="font-weight:500"><%= user.username %></td>
+      <td><span class="badge badge-<%= user.role %>"><%= user.role %></span></td>
+      <td><span class="badge badge-<%= user.status %>"><%= user.status %></span></td>
+      <td style="color:#999"><%= user.created_at ? user.created_at.substring(0,10) : '-' %></td>
+      <td>
+        <% if (user.id !== currentUser.id) { %>
+          <% if (user.status === 'pending' || user.status === 'suspended') { %>
+            <form method="post" action="/admin/users/<%= user.id %>/approve" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-approve">Approve</button>
+            </form>
+          <% } %>
+          <% if (user.status === 'approved') { %>
+            <form method="post" action="/admin/users/<%= user.id %>/suspend" style="display:inline;">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="btn btn-suspend">Suspend</button>
+            </form>
+          <% } %>
+          <form method="post" action="/admin/users/<%= user.id %>/delete" style="display:inline;"
+            onsubmit="return confirm('Delete this user? This cannot be undone.')">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn btn-delete">Delete</button>
+          </form>
+        <% } else { %>
+          <span style="font-size:12px;color:#999">(you)</span>
+        <% } %>
+      </td>
+    </tr>
+    <% }); %>
+    <% if (users.length === 0) { %>
+    <tr><td colspan="6" style="text-align:center;color:#999;padding:24px;">No users found.</td></tr>
+    <% } %>
+  </tbody>
+</table>
+<p class="muted"><%= users.length %> user(s) found.</p>
+
+<%- include('foot') -%>

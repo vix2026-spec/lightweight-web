@@ -1,10 +1,10 @@
 'use strict';
 
 const express = require('express');
-const crypto = require('node:crypto');
 const hash = require('pbkdf2-password')();
 const rateLimit = require('express-rate-limit');
 const db = require('./db');
+const { generateCsrfToken, verifyCsrf } = require('./middleware');
 
 const router = express.Router();
 
@@ -16,14 +16,6 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-function generateCsrfToken(req) {
-  if (!req.session.csrfToken) {
-    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
-  }
-  return req.session.csrfToken;
-}
-
-// Flash message middleware
 router.use(function (req, res, next) {
   const err = req.session.error;
   const msg = req.session.success;
@@ -34,15 +26,7 @@ router.use(function (req, res, next) {
   next();
 });
 
-// CSRF verification for POST requests
-router.use(function (req, res, next) {
-  if (req.method !== 'POST') return next();
-  const token = req.body._csrf;
-  if (!token || token !== req.session.csrfToken) {
-    return res.status(403).send('Invalid CSRF token');
-  }
-  next();
-});
+router.use(verifyCsrf);
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -55,6 +39,8 @@ const authLimiter = rateLimit({
 function authenticate(username, password, fn) {
   const user = db.findUser(username);
   if (!user) return fn(null, null);
+  if (user.status === 'pending') return fn(null, null, 'Your account is pending approval by an administrator.');
+  if (user.status === 'suspended') return fn(null, null, 'Your account has been suspended.');
   hash({ password, salt: user.salt }, function (err, pass, salt, h) {
     if (err) return fn(err);
     if (h === user.hash) return fn(null, user);
@@ -89,15 +75,15 @@ router.get('/login', function (req, res) {
 
 router.post('/login', authLimiter, function (req, res, next) {
   if (!req.body) return res.sendStatus(400);
-  authenticate(req.body.username, req.body.password, function (err, user) {
+  authenticate(req.body.username, req.body.password, function (err, user, reason) {
     if (err) return next(err);
     if (user) {
       req.session.regenerate(function () {
-        req.session.user = { id: user.id, username: user.username };
-        res.redirect('/auth/restricted');
+        req.session.user = { id: user.id, username: user.username, role: user.role };
+        res.redirect(user.role === 'admin' ? '/admin/users' : '/auth/restricted');
       });
     } else {
-      req.session.error = 'Authentication failed, please check your username and password.';
+      req.session.error = reason || 'Authentication failed, please check your username and password.';
       res.redirect('/auth/login');
     }
   });
@@ -122,7 +108,7 @@ router.post('/register', authLimiter, function (req, res, next) {
   hash({ password }, function (err, pass, salt, h) {
     if (err) return next(err);
     db.createUser(username, salt, h);
-    req.session.success = 'Account created! Please log in.';
+    req.session.success = 'Account created! Your account is pending approval. Please wait for an administrator to review it.';
     res.redirect('/auth/login');
   });
 });

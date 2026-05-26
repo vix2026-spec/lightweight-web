@@ -49,6 +49,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', require('./auth'));
+app.use('/admin', require('./admin'));
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}...`);

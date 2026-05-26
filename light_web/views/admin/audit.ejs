@@ -1,0 +1,34 @@
+<%- include('head', { title: 'Audit Log' }) -%>
+
+<h2>Audit Log</h2>
+<p class="muted" style="margin-bottom:16px;">Showing last 200 actions.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Admin</th>
+      <th>Action</th>
+      <th>Target User</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% logs.forEach(function(log) { %>
+    <tr>
+      <td style="color:#999;font-size:13px"><%= log.created_at %></td>
+      <td><%= log.admin_username %></td>
+      <td>
+        <span class="badge badge-<%= log.action==='approve'||log.action==='restore' ? 'approved' : log.action==='suspend' ? 'pending' : 'suspended' %>">
+          <%= log.action %>
+        </span>
+      </td>
+      <td><%= log.target_username %></td>
+    </tr>
+    <% }); %>
+    <% if (logs.length === 0) { %>
+    <tr><td colspan="4" style="text-align:center;color:#999;padding:24px;">No audit logs yet.</td></tr>
+    <% } %>
+  </tbody>
+</table>
+
+<%- include('foot') -%>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; color: #333; }
+    nav { background: #1a1a2e; color: white; padding: 12px 24px; display: flex; align-items: center; gap: 24px; }
+    nav strong { font-size: 15px; letter-spacing: 0.5px; }
+    nav a { color: #aaa; text-decoration: none; font-size: 14px; }
+    nav a:hover { color: white; }
+    nav .ml { margin-left: auto; }
+    .container { max-width: 1000px; margin: 32px auto; padding: 0 16px; }
+    h2 { margin-bottom: 16px; font-size: 20px; }
+    .flash { padding: 10px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; }
+    .flash.error { background: #fdecea; color: #c0392b; border: 1px solid #e74c3c; }
+    .flash.success { background: #eafaf1; color: #1e8449; border: 1px solid #27ae60; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    thead tr { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
+    th { padding: 12px 16px; text-align: left; font-size: 13px; color: #666; font-weight: 600; }
+    td { padding: 11px 16px; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+    .badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; display: inline-block; }
+    .badge-approved { background: #d5f5e3; color: #1e8449; }
+    .badge-pending { background: #fef9e7; color: #b7950b; }
+    .badge-suspended { background: #fdecea; color: #c0392b; }
+    .badge-admin { background: #e8d5f5; color: #7b2d8b; }
+    .badge-user { background: #e8e8e8; color: #666; }
+    .btn { padding: 4px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; color: white; }
+    .btn-approve { background: #27ae60; }
+    .btn-suspend { background: #e67e22; }
+    .btn-delete { background: #e74c3c; }
+    .muted { font-size: 13px; color: #999; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<nav>
+  <strong>Admin Panel</strong>
+  <a href="/admin/users">Users</a>
+  <a href="/admin/audit">Audit Log</a>
+  <span class="ml"><a href="/auth/logout">Logout (<%= currentUser.username %>)</a></span>
+</nav>
+<div class="container">
+<% if (messageType) { %>
+  <div class="flash <%= messageType %>"><%= messageText %></div>
+<% } %>
