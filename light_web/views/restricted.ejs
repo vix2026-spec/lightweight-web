@@ -4,4 +4,78 @@
 <p>Welcome, <strong><%= username %></strong>!</p>
 <p><a href="/auth/logout">Logout</a></p>
 
+<hr>
+<h2>Chat with Gemini</h2>
+
+<div id="chat-box" style="border:1px solid #ccc; border-radius:6px; padding:12px; min-height:80px; max-height:400px; overflow-y:auto; margin-bottom:12px; background:#fafafa;">
+  <p style="color:#999; margin:0;">Send a message to start chatting.</p>
+</div>
+
+<form id="chat-form" style="display:flex; gap:8px;">
+  <input id="chat-input" type="text" placeholder="Type your message..." maxlength="1000"
+    style="flex:1; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:4px;" autocomplete="off">
+  <button type="submit" id="chat-btn"
+    style="padding:8px 16px; background:#4285f4; color:white; border:none; border-radius:4px; cursor:pointer; font-size:13px;">
+    Send
+  </button>
+</form>
+
+<script>
+  const form = document.getElementById('chat-form');
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-btn');
+  const box = document.getElementById('chat-box');
+
+  function appendMessage(role, text) {
+    const first = box.querySelector('p[style*="color:#999"]');
+    if (first) first.remove();
+
+    const div = document.createElement('div');
+    div.style.cssText = 'margin-bottom:10px;';
+    const label = document.createElement('strong');
+    label.textContent = role === 'user' ? 'You: ' : 'Gemini: ';
+    label.style.color = role === 'user' ? '#333' : '#1a73e8';
+    const span = document.createElement('span');
+    span.textContent = text;
+    div.appendChild(label);
+    div.appendChild(span);
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const message = input.value.trim();
+    if (!message) return;
+
+    appendMessage('user', message);
+    input.value = '';
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      const res = await fetch('/auth/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': '<%= csrfToken %>'
+        },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        appendMessage('gemini', data.reply);
+      } else {
+        appendMessage('gemini', 'Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      appendMessage('gemini', 'Network error, please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send';
+      input.focus();
+    }
+  });
+</script>
+
 <%- include('foot') -%>
