@@ -3,8 +3,11 @@
 const express = require('express');
 const hash = require('pbkdf2-password')();
 const rateLimit = require('express-rate-limit');
+const { GoogleGenAI } = require('@google/genai');
 const db = require('./db');
 const { generateCsrfToken, verifyCsrf } = require('./middleware');
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 const router = express.Router();
 
@@ -34,6 +37,14 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: 'Too many attempts, please try again later.'
+});
+
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: JSON.stringify({ error: 'Too many requests, please slow down.' })
 });
 
 function authenticate(username, password, fn) {
@@ -115,6 +126,24 @@ router.post('/register', authLimiter, function (req, res, next) {
 
 router.get('/restricted', restrict, function (req, res) {
   res.render('restricted', { username: escapeHtml(req.session.user.username) });
+});
+
+router.post('/chat', restrict, chatLimiter, async function (req, res) {
+  const message = req.body && typeof req.body.message === 'string' ? req.body.message.trim() : '';
+  if (!message) return res.status(400).json({ error: 'Message is required.' });
+  if (message.length > 1000) return res.status(400).json({ error: 'Message too long (max 1000 characters).' });
+  if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'Gemini API key not configured.' });
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: message,
+    });
+    res.json({ reply: response.text });
+  } catch (err) {
+    console.error('Gemini error:', err.message);
+    res.status(502).json({ error: 'Failed to get response from Gemini.' });
+  }
 });
 
 router.get('/logout', function (req, res) {
