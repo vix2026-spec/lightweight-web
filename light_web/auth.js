@@ -125,7 +125,10 @@ router.post('/register', authLimiter, function (req, res, next) {
 });
 
 router.get('/restricted', restrict, function (req, res) {
-  res.render('restricted', { username: escapeHtml(req.session.user.username) });
+  res.render('restricted', {
+    username: escapeHtml(req.session.user.username),
+    csrfToken: generateCsrfToken(req)
+  });
 });
 
 router.post('/chat', restrict, chatLimiter, async function (req, res) {
