@@ -12,6 +12,7 @@ function generateCsrfToken(req) {
 function verifyCsrf(req, res, next) {
   if (req.method !== 'POST') return next();
   const token = req.body._csrf || req.headers['x-csrf-token'];
+  console.log('[CSRF] body._csrf:', req.body._csrf, '| session.csrfToken:', req.session.csrfToken);
   if (!token || token !== req.session.csrfToken) {
     return res.status(403).send('Invalid CSRF token');
   }
