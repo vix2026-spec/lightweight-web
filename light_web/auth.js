@@ -139,7 +139,7 @@ router.post('/chat', restrict, chatLimiter, async function (req, res) {
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: message,
     });
     res.json({ reply: response.text });
